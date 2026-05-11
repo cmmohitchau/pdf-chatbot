@@ -18,7 +18,6 @@ def hybrid_search(hyde_answer, top_k=5):
             results = vector_retriever.invoke(hyde_answer.content)
         else:
             results = retriever.invoke(hyde_answer.content)
-        print(f"Retrieved {len(results)} documents.")
         return results
     except Exception as e:
         print(f"Error during hybrid search: {e}")

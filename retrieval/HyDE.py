@@ -1,14 +1,9 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+from config.llm import llm
 from dotenv import load_dotenv
 import os
 load_dotenv()
-
-llm = ChatOpenAI(
-    model="openrouter/free",
-    base_url="https://openrouter.ai/api/v1",
-    api_key = os.getenv("OPENROUTER_API_KEY"),
-)
 
 hyde_prompt = """
 You are a helpful assistant that generates a detailed answer to the user's question.
@@ -16,7 +11,7 @@ Generate a scientific answer to the following question, providing in-depth expla
 Question: {query}
 
 """
-def hyde_fun(query):
+def hyde(query):
     prompt = PromptTemplate.from_template(hyde_prompt)
     hyde_chain = prompt | llm
     response = hyde_chain.invoke({"query": query})
