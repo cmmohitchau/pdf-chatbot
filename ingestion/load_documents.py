@@ -5,13 +5,13 @@ def load_documents(file):
     try:
         reader = PdfReader(file.file)
 
-        text = ""
+        text = []
 
         for page in reader.pages:
             extracted = page.extract_text()
 
             if extracted:
-                text += extracted
+                text.append(extracted)
             
         return text
     except Exception as e:
