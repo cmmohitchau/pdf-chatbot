@@ -1,15 +1,16 @@
 from config.llm import llm
-def generate(query , retrieved_docs):
+def generate(query, context):
+    prompt = f"""Answer the question using ONLY the context below.
+    You MUST include the citation tags exactly as they appear in the context after every claim.
+    Do not drop or modify citation tags.
 
-    prompt = f"""
-    You are an ai assistant.Given a query generate a concise and accurate answer based on this context only.
-    Context : {retrieved_docs}
+    Citation format: [Source: file.pdf, Page: 3, Chunk_id: 5]
 
-    Query : {query}
+    QUESTION: {query}
 
-    If you don't know the answer say so. Don't hallucinate the query.
-    """
+    CONTEXT:
+    {context}
 
-    return llm.invoke(prompt)
-
-
+    ANSWER:"""
+    result = llm.invoke(prompt)
+    return result
