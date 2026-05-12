@@ -1,8 +1,14 @@
+import os
+from dotenv import load_dotenv
 from sentence_transformers import CrossEncoder
 from config.llm import llm
 
+load_dotenv()
+
+hf_token = os.getenv("HF_TOKEN")
 model = CrossEncoder(
-    "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    token=hf_token
 )
 
 def rerank(docs , query):
@@ -20,19 +26,23 @@ def rerank(docs , query):
     
     return top_docs
 
-def compress(docs , query):
-    prompt = f"""
-    Extract only information relevant to:
+def compress(docs, query):
+    doc_texts = "\n\n".join([
+        f"[Source: {doc.metadata.get('source', 'unknown')}, "
+        f"Page: {doc.metadata.get('page', '?')}, "
+        f"Chunk_id: {doc.metadata.get('chunk_id', '?')}]\n{doc.page_content}"
+        for doc in docs
+    ])
+
+    prompt = f"""Extract only information relevant to the query below.
+    Do not hallucinate. Return concise, relevant text only.
+    Use this citation format after every claim:
+    [Source: filename.pdf, Page: 3, Chunk_id: 5]
+
     QUERY: {query}
 
-    DOCUMENT : {docs}
-
-    Return concise relevant text only.
+    DOCUMENTS:
+    {doc_texts}
     """
-    
-    return llm.invoke(prompt)
-
-
-
-    
-
+    result = llm.invoke(prompt)
+    return result.content
