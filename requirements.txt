@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+langchain
+langchain-core
+langchain-community
+python-dotenv
+langchain-classic
+langchain-opeinai
+langchain-text-splitters
+langsmith
+pinecone
+pypdf
+sentence-transformers
+uuid
