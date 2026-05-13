@@ -51,24 +51,19 @@ async def upload(file: UploadFile):
 @app.get("/query")
 async def query(q: str):
     try:
+        print(f" q : {q}")
 
         hyde_answer = hyde(q)
         search_results = hybrid_search(hyde_answer)
-        print("search_results")
-        print(search_results)
-        print("=" * 30)
         reranked_docs = rerank(search_results , q)
-        print("reranked_docs")
-        print(reranked_docs)
-        print("=" * 30)
+        
         compressed = compress(reranked_docs , q)
-        print("compressed")
-        print(compressed)
-        print("=" * 30)
+        print(f"compressed : {compressed}")
+        print("=" * 50)
         final_answer = generate(q , compressed)
 
-        answers = final_answer.split("\n\n")
-        return {"answer" : answers}
+        print(final_answer)
+        return {"answer" : final_answer.content}
     except Exception as e:
         raise HTTPException(status_code=500 , detail=str(e))
 

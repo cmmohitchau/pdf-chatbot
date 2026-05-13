@@ -3,12 +3,7 @@ from langchain_core.documents import Document
 def split_document(pages , source):
     try:
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        
-        for page in pages:
-            print(page)
-            print("=" * 30 + "\n\n")
-        
-
+    
         document = []
 
         for page_num, page in enumerate(pages):
