@@ -5,10 +5,11 @@ langchain-core
 langchain-community
 python-dotenv
 langchain-classic
-langchain-opeinai
+langchain-openai
 langchain-text-splitters
 langsmith
 pinecone
+langchain-pinecone
 pypdf
 sentence-transformers
-uuid
+python-multipart

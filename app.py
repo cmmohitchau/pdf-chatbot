@@ -12,8 +12,7 @@ from generation.generate import generate
 app = FastAPI()
 
 origins = [
-   "http://localhost:3000",
-   "https://myapp.com",
+   "*"
 ]
 
 
@@ -26,6 +25,14 @@ allow_headers=["*"],
 )
 
 ALLOWED_CONTENT_TYPES = {"application/pdf"}
+
+@app.get("/")
+async def root():
+    return {"message": "RAG API is running"}
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 @app.post("/upload")
 async def upload(file: UploadFile):
@@ -58,8 +65,6 @@ async def query(q: str):
         reranked_docs = rerank(search_results , q)
         
         compressed = compress(reranked_docs , q)
-        print(f"compressed : {compressed}")
-        print("=" * 50)
         final_answer = generate(q , compressed)
 
         print(final_answer)
