@@ -1,6 +1,7 @@
-from fastapi import FastAPI, UploadFile, HTTPException
+from fastapi import FastAPI, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from sqlmodel import select
 from ingestion.load_documents import load_documents
 from ingestion.split_document import split_document
 from ingestion.vector_store import vector_store
@@ -8,13 +9,23 @@ from retrieval.hyde import hyde
 from retrieval.hybrid_search import hybrid_search
 from retrieval.rerank_compression import (rerank , compress)
 from generation.generate import generate
+from db.engine import create_db_and_tables
+from db.model import User , UserCreate
+from db.engine import SessionDep
+from contextlib import asynccontextmanager
+from db.crud import create_user, get_user_by_email, jwt_authenticate, sign_user
+from middleware import AuthMiddleware
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 origins = [
-   "*"
+   "https://pdf-chat-frontend-cyan.vercel.app/"
 ]
-
 
 app.add_middleware(
 CORSMiddleware,
@@ -23,6 +34,7 @@ allow_credentials=True,
 allow_methods=["*"], 
 allow_headers=["*"], 
 )
+app.add_middleware(AuthMiddleware)
 
 ALLOWED_CONTENT_TYPES = {"application/pdf"}
 
@@ -33,6 +45,14 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+@app.post("/signup")
+def signup(user: UserCreate, session : SessionDep) -> User:
+    return create_user(user=user, session=session)
+
+@app.post("/signin")
+def signin(user: UserCreate, session:SessionDep):
+    return sign_user(user=user , session=session)
 
 @app.post("/upload")
 async def upload(file: UploadFile):
