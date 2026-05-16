@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 load_dotenv()
 
 
-jwt_secret = os.getenv("jwt_secret")
+jwt_secret = os.getenv("JWT_SECRET")
 password_hash = PasswordHash(
     (
         Argon2Hasher(),
@@ -23,11 +23,11 @@ password_hash = PasswordHash(
 ALGORITHM = "HS256"
 
 def verify_access_token(jwt_token: str):
-    decoded_jwt = jwt.decode(jwt_token, jwt_secret , algorithm=ALGORITHM)
+    decoded_jwt = jwt.decode(jwt_token, jwt_secret , algorithms=[ALGORITHM])
 
-    return decoded_jwt.sub if decoded_jwt else None
+    return decoded_jwt.get("sub") if decoded_jwt else None
 
-def create_access_token(subject: str | Any , expires_delta: timedelta) -> str:
+def create_access_token(subject: str , expires_delta: timedelta) -> str:
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode = {"exp": expire, "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=ALGORITHM)
