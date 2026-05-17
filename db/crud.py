@@ -3,8 +3,8 @@ from core.security import get_hash_password , verify_password , create_access_to
 from db.model import User
 from config.config import JWT_SECRET
 from db.engine import SessionDep
-from sqlmodel import select
 from datetime import timedelta
+from sqlmodel import select
 
 def sign_user(*, session: SessionDep, user: UserCreate):
     db_user = get_user_by_email(session=session, email=user.email)
@@ -17,9 +17,17 @@ def sign_user(*, session: SessionDep, user: UserCreate):
     if not verified:
         return None
 
-    jwt_token = create_access_token(db_user.email,timedelta(weeks=2))
+    access_token = create_access_token(db_user.id,timedelta(weeks=2))
 
-    return jwt_token
+
+    return {
+        "access_token": access_token,
+        "user": {
+            "id": db_user.id,
+            "email": db_user.email,
+            "name": db_user.name
+        }
+    }
 
 def create_user(*, session: SessionDep, user : UserCreate):
     db_user = get_user_by_email(session=session ,email=user.email)
@@ -33,7 +41,9 @@ def create_user(*, session: SessionDep, user : UserCreate):
     session.add(db_obj)
     session.commit()
     session.refresh(db_obj)
-    return db_obj
+    return {
+        "message" : "signup successfully"
+    }
 
 def get_user_by_email(*, session: SessionDep, email: str) -> User | None:
     statement = select(User).where(User.email == email)
