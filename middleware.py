@@ -4,14 +4,25 @@ from fastapi.responses import JSONResponse
 
 from core.security import verify_access_token
 
-
 class AuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
 
-        public_routes = ["/", "/signin", "/signup"]
+        # Allow preflight requests
+        if request.method == "OPTIONS":
+            return await call_next(request)
 
-        if request.url.path in public_routes:
+        path = request.url.path.rstrip("/")
+
+        public_routes = [
+            "",
+            "/signin",
+            "/signup",
+            "/auth/google",
+            "/health"
+        ]
+
+        if path in public_routes:
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
@@ -30,17 +41,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         token = auth_header.split(" ")[1]
 
-        email = verify_access_token(token)
+        id = verify_access_token(token)
 
-        if not email:
+        if not id:
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Invalid or expired token"}
             )
 
-        # Attach user info to request
-        request.state.email = email
+        request.state.id = id
 
-        response = await call_next(request)
-
-        return response
+        return await call_next(request)
