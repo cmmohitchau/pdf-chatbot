@@ -15,6 +15,7 @@ from db.engine import SessionDep
 from contextlib import asynccontextmanager
 from db.crud import create_user, get_user_by_email, jwt_authenticate, sign_user
 from middleware import AuthMiddleware
+from auth.google import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,9 +23,11 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(router)
 
 origins = [
-   "https://pdf-chat-frontend-cyan.vercel.app/"
+   "https://pdf-chat-frontend-cyan.vercel.app",
+   "http://localhost:3000"
 ]
 
 app.add_middleware(
@@ -47,7 +50,8 @@ async def health():
     return {"status": "ok"}
 
 @app.post("/signup")
-def signup(user: UserCreate, session : SessionDep) -> User:
+def signup(user: UserCreate, session : SessionDep):
+    print("in signup router : " , user)
     return create_user(user=user, session=session)
 
 @app.post("/signin")
