@@ -29,7 +29,7 @@ def verify_access_token(jwt_token: str):
 
 def create_access_token(subject: str , expires_delta: timedelta) -> str:
     expire = datetime.now(timezone.utc) + expires_delta
-    to_encode = {"exp": expire, "sub": str(subject)}
+    to_encode = {"exp": expire, "id" : str(subject)}
     encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=ALGORITHM)
     return encoded_jwt
 
