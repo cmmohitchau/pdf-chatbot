@@ -1,7 +1,6 @@
 from pypdf import PdfReader
 
 def load_documents(file):
-    print("Loading documents...")
     try:
         reader = PdfReader(file.file)
 

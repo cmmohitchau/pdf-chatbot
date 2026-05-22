@@ -22,7 +22,6 @@ bm25_retriever = None
 
 def vector_store(documents , source) -> bool:
     global bm25_retriever
-    print(f"Storing {len(documents)} chunks from '{source}'...")
 
     try:
         # Unique IDs per upload to avoid overwriting previous docs

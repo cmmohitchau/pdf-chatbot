@@ -51,7 +51,6 @@ async def health():
 
 @app.post("/signup")
 def signup(user: UserCreate, session : SessionDep):
-    print("in signup router : " , user)
     return create_user(user=user, session=session)
 
 @app.post("/signin")
@@ -82,7 +81,6 @@ async def upload(file: UploadFile):
 @app.get("/query")
 async def query(q: str):
     try:
-        print(f" q : {q}")
 
         hyde_answer = hyde(q)
         search_results = hybrid_search(hyde_answer)
@@ -91,7 +89,6 @@ async def query(q: str):
         compressed = compress(reranked_docs , q)
         final_answer = generate(q , compressed)
 
-        print(final_answer)
         return {"answer" : final_answer.content}
     except Exception as e:
         raise HTTPException(status_code=500 , detail=str(e))

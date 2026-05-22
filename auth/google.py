@@ -11,7 +11,6 @@ router = APIRouter()
 
 @router.post("/auth/google")
 async def google_auth(data: UserBase, session : SessionDep):
-    print("data in backend : " , data)
     user = get_user_by_email(session=session , email=data.email)
 
     if not user:

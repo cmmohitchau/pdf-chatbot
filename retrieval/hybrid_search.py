@@ -11,7 +11,6 @@ def hybrid_search(hyde_answer, top_k=5):
 
     if bm25_retriever is not None:
         retriever = EnsembleRetriever(retrievers=[vector_retriever, bm25_retriever], weights=[0.7, 0.3])
-    print("Performing hybrid search...")
     try:
         results = None
         if retriever is None:

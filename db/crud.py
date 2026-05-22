@@ -8,7 +8,6 @@ from sqlmodel import select
 
 def sign_user(*, session: SessionDep, user: UserCreate):
     db_user = get_user_by_email(session=session, email=user.email)
-
     if not db_user:
         return None
     
@@ -18,7 +17,6 @@ def sign_user(*, session: SessionDep, user: UserCreate):
         return None
 
     access_token = create_access_token(db_user.id,timedelta(weeks=2))
-
 
     return {
         "access_token": access_token,
