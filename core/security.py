@@ -25,7 +25,7 @@ ALGORITHM = "HS256"
 def verify_access_token(jwt_token: str):
     decoded_jwt = jwt.decode(jwt_token, jwt_secret , algorithms=[ALGORITHM])
 
-    return decoded_jwt.get("sub") if decoded_jwt else None
+    return decoded_jwt.get("id") if decoded_jwt else None
 
 def create_access_token(subject: str , expires_delta: timedelta) -> str:
     expire = datetime.now(timezone.utc) + expires_delta
