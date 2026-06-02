@@ -1,8 +1,5 @@
-import os
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
+from .config import GROQ_API_KEY
 
-llm = ChatOpenAI(
-    model="openrouter/free",
-    base_url="https://openrouter.ai/api/v1",
-    api_key = os.getenv("OPENROUTER_API_KEY"),
-)
+
+llm  = ChatGroq(api_key=GROQ_API_KEY , model="llama-3.1-8b-instant", temperature=0.7)
