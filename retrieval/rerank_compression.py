@@ -37,7 +37,7 @@ def compress(docs, query):
     prompt = f"""Extract only information relevant to the query below.
     Do not hallucinate. Return concise, relevant text only.
     Use this citation format after every claim:
-    [Source: filename.pdf, Page: 3, Chunk_id: 5]
+    [Source: filename.pdf, Page: 3]
 
     QUERY: {query}
 
