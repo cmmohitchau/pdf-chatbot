@@ -19,3 +19,5 @@ PyJWT
 pwdlib[argon2]
 pwdlib[bcrypt]
 psycopg
+google-auth
+langchain_groq
