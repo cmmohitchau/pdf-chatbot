@@ -19,20 +19,26 @@ embeddings = OpenAIEmbeddings(
 
 vectorstore = PineconeVectorStore(index=index, embedding=embeddings)
 bm25_retriever = None
+all_documents = []
 
 def vector_store(documents , source) -> bool:
     global bm25_retriever
+    global all_documents
 
     try:
         # Unique IDs per upload to avoid overwriting previous docs
         upload_id = uuid.uuid4().hex[:8]
-        ids = [f"{upload_id}-chunk-{i}" for i in range(len(documents))]
-        for doc in documents:
-            doc.metadata["source"] = source
+        ids = [
+            f"{upload_id}-chunk-{i}" for i in range(len(documents))
+            ]
+        for i , doc in enumerate(documents):
+            doc.metadata["document_name"] = source
+            doc.metadata["vector_id"] = ids[i]
+            doc.metadata["upload_id"] = upload_id
         vectorstore.add_documents(ids=ids, documents=documents)
 
-        bm25_retriever = BM25Retriever.from_documents(documents)
-        print("Vector store updated successfully.")
+        all_documents.extend(documents)
+        bm25_retriever = BM25Retriever.from_documents(all_documents)
         return True
 
     except Exception as e:
