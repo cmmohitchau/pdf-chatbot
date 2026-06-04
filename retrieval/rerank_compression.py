@@ -6,15 +6,19 @@ from config.llm import llm
 load_dotenv()
 
 hf_token = os.getenv("HF_TOKEN")
-model = CrossEncoder(
+
+reranker = CrossEncoder(
     "cross-encoder/ms-marco-MiniLM-L-6-v2",
     token=hf_token
 )
 
 def rerank(docs , query):
+    if not docs:
+        return []
+    
     pairs = [ [query , doc.page_content] for doc in docs]
 
-    scores = model.predict(pairs)
+    scores = reranker.predict(pairs)
 
     ranked = sorted(
         zip(docs , scores),
@@ -26,23 +30,58 @@ def rerank(docs , query):
     
     return top_docs
 
-def compress(docs, query):
-    doc_texts = "\n\n".join([
-        f"[Source: {doc.metadata.get('source', 'unknown')}, "
-        f"Page: {doc.metadata.get('page', '?')}, "
-        f"Chunk_id: {doc.metadata.get('chunk_id', '?')}]\n{doc.page_content}"
-        for doc in docs
-    ])
+def build_citations(docs):
 
-    prompt = f"""Extract only information relevant to the query below.
-    Do not hallucinate. Return concise, relevant text only.
-    Use this citation format after every claim:
-    [Source: filename.pdf, Page: 3]
 
-    QUERY: {query}
+    citations = {}
 
-    DOCUMENTS:
-    {doc_texts}
-    """
-    result = llm.invoke(prompt)
-    return result.content
+    for i, doc in enumerate(docs, start=1):
+        citations[str(i)] = {
+            "document_name": doc.metadata.get(
+                "document_name",
+                doc.metadata.get("source", "Unknown")
+            ),
+            "source": doc.metadata.get("source"),
+            "page": doc.metadata.get("page"),
+            "chunk_id": doc.metadata.get("chunk_id"),
+            "chunk_index_in_page": doc.metadata.get(
+                "chunk_index_in_page"
+            ),
+            "text": doc.page_content
+        }
+        print(f"Built citation for doc {i}: {citations[str(i)]} \n {'-'*40}")
+
+    return citations
+
+def build_context(docs):
+
+    context_parts = []
+
+    for i, doc in enumerate(docs, start=1):
+
+        context_parts.append(
+            f"""
+            [CITATION_ID:{i}]
+            DOCUMENT: {doc.metadata.get('source')}
+            PAGE: {doc.metadata.get('page')}
+
+            {doc.page_content}
+            """
+        )
+    print(f"Built context with {len(context_parts)} parts")
+
+    for part in context_parts:
+        print(f"Context part:\n\n{part}\n\n{'-'*40}")
+
+    return "\n\n".join(context_parts)
+
+def compress(docs):
+
+    citations = build_citations(docs)
+
+    context = build_context(docs)
+
+    return {
+        "context": context,
+        "citations": citations
+    }
