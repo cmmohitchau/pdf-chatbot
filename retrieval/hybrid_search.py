@@ -1,16 +1,19 @@
 
-from ingestion.vector_store import (
-    vectorstore,
-    bm25_retriever
-)
+import ingestion.vector_store as vs
+
 from langchain_classic.retrievers.ensemble import EnsembleRetriever
 
-def hybrid_search(hyde_answer, top_k=5):
-    vector_retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
+def hybrid_search(hyde_answer, top_k=15 , sources=None):
+    vector_retriever = vs.vectorstore.as_retriever(
+        search_kwargs={
+            "k": top_k,         
+            "filter": {"source": {"$in": sources if sources else []}}  } 
+        )
+
     retriever = None
 
-    if bm25_retriever is not None:
-        retriever = EnsembleRetriever(retrievers=[vector_retriever, bm25_retriever], weights=[0.7, 0.3])
+    if vs.bm25_retriever is not None:
+        retriever = EnsembleRetriever(retrievers=[vector_retriever, vs.bm25_retriever], weights=[0.7, 0.3])
     try:
         results = None
         if retriever is None:
