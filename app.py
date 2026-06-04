@@ -16,11 +16,18 @@ from contextlib import asynccontextmanager
 from db.crud import create_user, get_user_by_email, jwt_authenticate, sign_user
 from middleware import AuthMiddleware
 from auth.google import router
+from pydantic import BaseModel
+from typing import List, Optional
+
+class QueryRequest(BaseModel):
+    query: str
+    sources: Optional[List[str]] = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
@@ -78,18 +85,28 @@ async def upload(file: UploadFile):
     return {"message": "File uploaded successfully.", "chunks": len(documents)}
 
 
-@app.get("/query")
-async def query(q: str):
+@app.post("/query")
+async def query(queryRequest: QueryRequest , request: Request):
     try:
+        q = queryRequest.query
+        sources = queryRequest.sources
+
+        if(not sources):
+            return {"answer" : "Please specify the source document for accurate information." , "citations" : []}
+        
 
         hyde_answer = hyde(q)
-        search_results = hybrid_search(hyde_answer)
+        search_results = hybrid_search(hyde_answer, sources=sources)
         reranked_docs = rerank(search_results , q)
-        
-        compressed = compress(reranked_docs , q)
-        final_answer = generate(q , compressed)
 
-        return {"answer" : final_answer.content}
+        compressed = compress(reranked_docs)
+
+        final_answer = generate(q , compressed["context"])
+
+        return {
+            "answer" : final_answer.content,
+            "citations" : compressed["citations"]
+        }
     except Exception as e:
         raise HTTPException(status_code=500 , detail=str(e))
 
